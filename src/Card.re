@@ -18,12 +18,6 @@ let initialize = (animal, group) => {animal, group, state: FaceDown};
 
 let makePair = animal => [initialize(animal, A), initialize(animal, B)];
 
-let cmp = (c1, c2) =>
-  switch (compare(c1.animal, c2.animal)) {
-  | 0 => compare(c1.group, c2.group)
-  | x => x
-  };
-
 let key = ({group, animal}) => {
   let groupString =
     switch (group) {

@@ -9,7 +9,6 @@ type t = {
 };
 
 let makePair: Animal.t => list(t);
-let cmp: (t, t) => int;
 let key: t => string;
 let imageUrl: t => string;
 let isMatch: (t, t) => bool;

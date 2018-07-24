@@ -10,15 +10,11 @@ let reducer = (action, state) =>
 
 let component = ReasonReact.reducerComponent("App");
 
-let initialState = () => {
-  let g = Game.initialize();
-  Js.log(g);
-  g;
-};
+let initialState = () => Game.initialize();
 
 let buttonAction = ({ReasonReact.state: {Game.turnState}} as self) =>
   switch (turnState) {
-  | TwoCardsFlipped({animal: a1}, {animal: a2}) when a1 == a2 => (
+  | TwoCardsFlipped(card1, card2) when Card.isMatch(card1, card2) => (
       _ => self.send(Game.ClaimPair)
     )
   | TwoCardsFlipped(_, _) => (_ => self.send(Game.Reset))
@@ -38,7 +34,7 @@ let message = ({Game.turnState}) =>
     | NotStarted => "Choose a card"
     | OneCardFlipped({animal}) =>
       "Try to find the other " ++ Animal.toString(animal)
-    | TwoCardsFlipped({animal: a1}, {animal: a2}) when a1 == a2 => "A match! Click to continue."
+    | TwoCardsFlipped(card1, card2) when Card.isMatch(card1, card2) => "A match! Click to continue."
     | TwoCardsFlipped(_, _) => "Sorry, reset and try again"
     }
   );
@@ -48,7 +44,9 @@ let make = _children => {
   initialState,
   reducer,
   render:
-    ({ReasonReact.state: {Game.turnState, Game.paired} as state} as self) =>
+    (
+      {ReasonReact.state: {Game.turnState, Game.paired, Game.deck} as state} as self,
+    ) =>
     <div className="app">
       <div className="grid">
         (
@@ -65,7 +63,7 @@ let make = _children => {
                   src="x.png"
                   key=(Card.key(card))
                 />,
-            self.state.deck,
+            deck,
           )
           |> Array.of_list
           |> ReasonReact.array
@@ -75,10 +73,10 @@ let make = _children => {
         (
           switch (turnState) {
           | NotStarted
-          | OneCardFlipped(_) => str(message(self.state))
+          | OneCardFlipped(_) => str(message(state))
           | TwoCardsFlipped(_, _) =>
             <button onClick=(buttonAction(self))>
-              (str(message(self.state)))
+              (str(message(state)))
             </button>
           }
         )
