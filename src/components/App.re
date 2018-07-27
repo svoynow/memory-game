@@ -6,7 +6,10 @@ type action = Game.action;
 type state = Game.t;
 
 let reducer = (action, state) =>
-  ReasonReact.Update(Game.doAction(action, state));
+  Belt.Result.mapWithDefault(
+    Game.doAction(action, state), ReasonReact.NoUpdate, a =>
+    ReasonReact.Update(a)
+  );
 
 let component = ReasonReact.reducerComponent("App");
 
@@ -35,7 +38,7 @@ let message = ({Game.turnState}) =>
     | OneCardFlipped({animal}) =>
       "Try to find the other " ++ Animal.toString(animal)
     | TwoCardsFlipped(card1, card2) when Card.isMatch(card1, card2) => "A match! Click to continue."
-    | TwoCardsFlipped(_, _) => "Sorry, reset and try again"
+    | TwoCardsFlipped(_, _) => "No match. Reset and try again"
     }
   );
 

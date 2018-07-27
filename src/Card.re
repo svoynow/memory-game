@@ -35,5 +35,8 @@ let imageUrl = ({state, animal}) =>
 
 let isMatch = ({animal: a}, {animal: b}) => a == b;
 
+let isSameCard = ({group: a} as c1, {group: b} as c2) =>
+  isMatch(c1, c2) && a == b;
+
 let flip = card => {...card, state: FaceUp};
 let reset = card => {...card, state: FaceDown};

@@ -1,5 +1,7 @@
 [%%debugger.chrome];
 
+open Belt.Result;
+
 type turnState =
   | NotStarted
   | OneCardFlipped(Card.t)
@@ -22,33 +24,37 @@ let addPair = (paired, animal) =>
 
 let doAction = (a, {turnState, deck, paired} as game) =>
   switch (turnState, a) {
-  | (NotStarted, SelectFirst(card)) => {
+  | (NotStarted, SelectFirst(card)) =>
+    Ok({
       ...game,
       deck: Deck.flipCard(deck, card),
       turnState: OneCardFlipped(Card.flip(card)),
-    }
-  | (OneCardFlipped(flipped), SelectSecond(card)) => {
+    })
+  | (OneCardFlipped(flipped), SelectSecond(card)) =>
+    Ok({
       ...game,
       deck: Deck.flipCard(deck, card),
       turnState: TwoCardsFlipped(flipped, Card.flip(card)),
-    }
-  | (TwoCardsFlipped(a, b), ClaimPair) when Card.isMatch(a, b) => {
+    })
+  | (TwoCardsFlipped(a, b), ClaimPair) when Card.isMatch(a, b) =>
+    Ok({
       paired: addPair(paired, a.Card.animal),
       deck: Deck.resetCard(Deck.resetCard(deck, a), b),
       turnState: NotStarted,
-    }
-  | (TwoCardsFlipped(a, b), Reset) when ! Card.isMatch(a, b) => {
+    })
+  | (TwoCardsFlipped(a, b), Reset) when ! Card.isMatch(a, b) =>
+    Ok({
       ...game,
       deck: Deck.resetCard(Deck.resetCard(deck, a), b),
       turnState: NotStarted,
-    }
+    })
   | (_, _) =>
     Js.log("illegal transition");
-    game;
+    Error("I'm sorry Dave, I'm afraid I can't do that.");
   };
 
 let initialize = () => {
-  let deck = Deck.makeDeck();
+  let deck = Deck.makeDeck(8);
   {deck, turnState: NotStarted, paired: Array.of_list([])};
 };
 

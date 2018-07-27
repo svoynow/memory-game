@@ -12,6 +12,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
+    "test2": "npm run build && jest",
     "eject": "react-scripts eject",
     "prepare": "npm link bs-platform"
   },
