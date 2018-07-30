@@ -10,10 +10,6 @@ describe("makePair", () => {
     expect(x.animal) |> toEqual(y.animal)
   );
 
-  test("pairs have the same state", _ =>
-    expect(x.state) |> toEqual(y.state)
-  );
-
   test("pairs have different groups", _ =>
     expect(x.group) |> not_ |> toEqual(y.group)
   );
@@ -34,25 +30,5 @@ describe("isMatch", () => {
   );
   test("cards with different animals don't match", _ =>
     expect(isMatch(x2, y)) |> toBe(false)
-  );
-});
-
-describe("flip", () => {
-  test("changes the state of a face down card to face up", _ =>
-    expect(flip(x).state) |> not_ |> toEqual(x.state)
-  );
-
-  test("it doesn't matter if you flip more than once", _ =>
-    expect(flip(flip(flip(x))).state) |> toEqual(flip(x).state)
-  );
-});
-
-describe("reset", () => {
-  test("changes the state of a face up card to face down", _ =>
-    expect(reset(flip(x)).state) |> toEqual(x.state)
-  );
-
-  test("it doesn't matter if you reset more than once", _ =>
-    expect(reset(reset(reset(flip(x)))).state) |> toEqual(x.state)
   );
 });

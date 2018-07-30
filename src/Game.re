@@ -2,61 +2,63 @@
 
 open Belt.Result;
 
+type gameCard = Tableau.Item.t;
+
 type turnState =
   | NotStarted
-  | OneCardFlipped(Card.t)
-  | TwoCardsFlipped(Card.t, Card.t);
+  | OneCardFlipped(gameCard)
+  | TwoCardsFlipped(gameCard, gameCard);
+
+type cardState =
+  | FaceUp
+  | FaceDown
+  | Paired;
 
 type t = {
-  deck: Deck.t,
+  tableau: Tableau.t,
   turnState,
-  paired: array(Animal.t),
 };
 
 type action =
-  | SelectFirst(Card.t)
-  | SelectSecond(Card.t)
+  | SelectFirst(gameCard)
+  | SelectSecond(gameCard)
   | Reset
   | ClaimPair;
 
-let addPair = (paired, animal) =>
-  Array.append(paired, Array.of_list([animal]));
+let hasMatch = state =>
+  switch (state) {
+  | TwoCardsFlipped(a, b) when Tableau.Item.isMatch(a, b) => true
+  | _ => false
+  };
 
-let doAction = (a, {turnState, deck, paired} as game) =>
-  switch (turnState, a) {
-  | (NotStarted, SelectFirst(card)) =>
+let doAction = (action, {turnState, tableau}) =>
+  switch (turnState, action) {
+  | (NotStarted, SelectFirst(card))
+      when Tableau.getItemState(tableau, card) == Tableau.Item.FaceDown =>
     Ok({
-      ...game,
-      deck: Deck.flipCard(deck, card),
-      turnState: OneCardFlipped(Card.flip(card)),
+      tableau: Tableau.flipCard(tableau, card),
+      turnState: OneCardFlipped(card),
     })
-  | (OneCardFlipped(flipped), SelectSecond(card)) =>
+
+  | (OneCardFlipped(flipped), SelectSecond(card))
+      when Tableau.getItemState(tableau, card) == Tableau.Item.FaceDown =>
     Ok({
-      ...game,
-      deck: Deck.flipCard(deck, card),
-      turnState: TwoCardsFlipped(flipped, Card.flip(card)),
+      tableau: Tableau.flipCard(tableau, card),
+      turnState: TwoCardsFlipped(flipped, card),
     })
-  | (TwoCardsFlipped(a, b), ClaimPair) when Card.isMatch(a, b) =>
+
+  | (TwoCardsFlipped(a, b), ClaimPair) when hasMatch(turnState) =>
+    Ok({tableau: Tableau.pairCards(tableau, [a, b]), turnState: NotStarted})
+
+  | (TwoCardsFlipped(a, b), Reset) when ! hasMatch(turnState) =>
     Ok({
-      paired: addPair(paired, a.Card.animal),
-      deck: Deck.resetCard(Deck.resetCard(deck, a), b),
+      tableau: Tableau.resetCards(tableau, [a, b]),
       turnState: NotStarted,
     })
-  | (TwoCardsFlipped(a, b), Reset) when ! Card.isMatch(a, b) =>
-    Ok({
-      ...game,
-      deck: Deck.resetCard(Deck.resetCard(deck, a), b),
-      turnState: NotStarted,
-    })
-  | (_, _) =>
-    Js.log("illegal transition");
-    Error("I'm sorry Dave, I'm afraid I can't do that.");
+  | (_, _) => Error("I'm sorry Dave, I'm afraid I can't do that.")
   };
 
 let initialize = () => {
-  let deck = Deck.makeDeck(8);
-  {deck, turnState: NotStarted, paired: Array.of_list([])};
+  let deck = Deck.makeDeck();
+  {tableau: Tableau.makeTableau(deck, ~numPairs=8), turnState: NotStarted};
 };
-
-let displayCard = ({paired}, {Card.animal}) =>
-  ! Js.Array.includes(animal, paired);

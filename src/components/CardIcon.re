@@ -3,5 +3,5 @@ let component = ReasonReact.statelessComponent("CardIcon");
 let make = (~card, ~onClick, _children) => {
   ...component,
   render: _self =>
-    <img className="card-image" onClick src=(Card.imageUrl(card)) />,
+    <img className="card-image" onClick src=(Tableau.Item.image(card)) />,
 };

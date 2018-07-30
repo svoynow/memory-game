@@ -1,17 +1,14 @@
 {
   "name": "reason-scripts",
-  "sources": [
-    { "dir": "__tests__", "type": "dev" },
-    { "dir": "src", "subdirs": ["components"] }
-  ],
+  "sources": [{ "dir": "src", "subdirs": ["components"] }],
   "bs-dependencies": ["reason-react", "@glennsl/bs-jest"],
   "reason": {
     "react-jsx": 2
   },
-  "bsc-flags": ["-bs-super-errors", "-bs-g"],
+  "bsc-flags": ["-bs-super-errors"],
   "refmt": 3,
   "package-specs": {
-    "module": "commonjs",
+    "module": "es6",
     "in-source": true
   },
   "suffix": ".bs.js"

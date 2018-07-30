@@ -1,9 +1,3 @@
-[%%debugger.chrome];
-
-type state =
-  | FaceUp
-  | FaceDown;
-
 type group =
   | A
   | B;
@@ -11,10 +5,9 @@ type group =
 type t = {
   animal: Animal.t,
   group,
-  state,
 };
 
-let initialize = (animal, group) => {animal, group, state: FaceDown};
+let initialize = (animal, group) => {animal, group};
 
 let makePair = animal => [initialize(animal, A), initialize(animal, B)];
 
@@ -27,16 +20,9 @@ let key = ({group, animal}) => {
   Animal.toString(animal) ++ groupString;
 };
 
-let imageUrl = ({state, animal}) =>
-  switch (state) {
-  | FaceUp => Animal.url(animal)
-  | FaceDown => "blue.svg"
-  };
+let imageUrl = ({animal}) => Animal.url(animal);
 
 let isMatch = ({animal: a}, {animal: b}) => a == b;
 
 let isSameCard = ({group: a} as c1, {group: b} as c2) =>
   isMatch(c1, c2) && a == b;
-
-let flip = card => {...card, state: FaceUp};
-let reset = card => {...card, state: FaceDown};
