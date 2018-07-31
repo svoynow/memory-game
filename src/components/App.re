@@ -1,5 +1,3 @@
-[%%debugger.chrome];
-
 open Helpers;
 
 type action = Game.action;
@@ -25,22 +23,12 @@ let message = ({Game.turnState}) =>
   | GameComplete => "All done! Play again?"
   };
 
-let renderCard = (self, {Tableau.Item.cardState, Tableau.Item.card} as item) =>
-  switch (cardState) {
-  | FaceDown
-  | FaceUp =>
-    <CardIcon
-      card=item
-      key=(Card.key(card))
-      onClick=(_ => self.ReasonReact.send(Game.SelectCard(item)))
-    />
-  | Paired =>
-    <img
-      className="card-image"
-      src=(Tableau.Item.image(item))
-      key=(Card.key(card))
-    />
-  };
+let renderCard = (self, {Tableau.Item.card} as item) =>
+  <CardComponent
+    card=item
+    key=(Card.key(card))
+    onClick=(_ => self.ReasonReact.send(Game.SelectCard(item)))
+  />;
 
 let make = _children => {
   ...component,
