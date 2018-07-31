@@ -1,5 +1,3 @@
-[%%debugger.chrome];
-
 open Belt.Result;
 
 type gameCard = Tableau.Item.t;
@@ -7,7 +5,8 @@ type gameCard = Tableau.Item.t;
 type turnState =
   | NotStarted
   | OneCardFlipped(gameCard)
-  | TwoCardsFlipped(gameCard, gameCard);
+  | TwoCardsFlipped(gameCard, gameCard)
+  | GameComplete;
 
 type cardState =
   | FaceUp
@@ -20,10 +19,14 @@ type t = {
 };
 
 type action =
-  | SelectFirst(gameCard)
-  | SelectSecond(gameCard)
-  | Reset
-  | ClaimPair;
+  | SelectCard(gameCard)
+  | Continue
+  | Reset;
+
+let initialize = () => {
+  let deck = Deck.makeDeck();
+  {tableau: Tableau.makeTableau(deck, ~numPairs=8), turnState: NotStarted};
+};
 
 let hasMatch = state =>
   switch (state) {
@@ -33,32 +36,31 @@ let hasMatch = state =>
 
 let doAction = (action, {turnState, tableau}) =>
   switch (turnState, action) {
-  | (NotStarted, SelectFirst(card))
+  | (NotStarted, SelectCard(card))
       when Tableau.getItemState(tableau, card) == Tableau.Item.FaceDown =>
     Ok({
       tableau: Tableau.flipCard(tableau, card),
       turnState: OneCardFlipped(card),
     })
 
-  | (OneCardFlipped(flipped), SelectSecond(card))
+  | (OneCardFlipped(flipped), SelectCard(card))
       when Tableau.getItemState(tableau, card) == Tableau.Item.FaceDown =>
     Ok({
       tableau: Tableau.flipCard(tableau, card),
       turnState: TwoCardsFlipped(flipped, card),
     })
 
-  | (TwoCardsFlipped(a, b), ClaimPair) when hasMatch(turnState) =>
-    Ok({tableau: Tableau.pairCards(tableau, [a, b]), turnState: NotStarted})
-
-  | (TwoCardsFlipped(a, b), Reset) when ! hasMatch(turnState) =>
+  | (TwoCardsFlipped(a, b), Continue) when hasMatch(turnState) =>
+    let tableau = Tableau.pairCards(tableau, [a, b]);
+    Ok({
+      tableau,
+      turnState: Tableau.complete(tableau) ? GameComplete : NotStarted,
+    });
+  | (TwoCardsFlipped(a, b), Continue) when ! hasMatch(turnState) =>
     Ok({
       tableau: Tableau.resetCards(tableau, [a, b]),
       turnState: NotStarted,
     })
-  | (_, _) => Error("I'm sorry Dave, I'm afraid I can't do that.")
+  | (_, Reset) => Ok(initialize())
+  | (_, _) => Error("Nope")
   };
-
-let initialize = () => {
-  let deck = Deck.makeDeck();
-  {tableau: Tableau.makeTableau(deck, ~numPairs=8), turnState: NotStarted};
-};

@@ -37,6 +37,8 @@ let pairsFound = tableau =>
   )
   / 2;
 
+let complete = tableau => pairsFound(tableau) * 2 == List.length(tableau);
+
 let changeItemState = (tableau, item, newState) =>
   List.map(
     it => Item.isSame(item, it) ? {...item, cardState: newState} : it,
@@ -64,4 +66,5 @@ let makeTableau = (deck, ~numPairs) =>
   deck
   |. Belt.List.take(numPairs * 2)
   |. Belt.Option.getWithDefault(deck)
+  |. Belt.List.shuffle
   |> List.map(Item.initialize);

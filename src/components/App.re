@@ -15,22 +15,6 @@ let component = ReasonReact.reducerComponent("App");
 
 let initialState = () => Game.initialize();
 
-let buttonAction = ({ReasonReact.state: {Game.turnState}} as self) =>
-  switch (turnState) {
-  | TwoCardsFlipped(_a, _b) when Game.hasMatch(turnState) => (
-      _ => self.send(Game.ClaimPair)
-    )
-  | TwoCardsFlipped(_a, _b) => (_ => self.send(Game.Reset))
-  | _ => noOp
-  };
-
-let cardAction = ({ReasonReact.state: {Game.turnState}} as self, card) =>
-  switch (turnState) {
-  | NotStarted => (_ => self.send(Game.SelectFirst(card)))
-  | OneCardFlipped(_card) => (_ => self.send(Game.SelectSecond(card)))
-  | _ => noOp
-  };
-
 let message = ({Game.turnState}) =>
   switch (turnState) {
   | NotStarted => "Choose a card"
@@ -38,6 +22,7 @@ let message = ({Game.turnState}) =>
     "Try to find the other " ++ Tableau.Item.toString(card)
   | TwoCardsFlipped(_, _) when Game.hasMatch(turnState) => "A match! Click to continue."
   | TwoCardsFlipped(_, _) => "No match. Reset and try again"
+  | GameComplete => "All done! Play again?"
   };
 
 let renderCard = (self, {Tableau.Item.cardState, Tableau.Item.card} as item) =>
@@ -47,7 +32,7 @@ let renderCard = (self, {Tableau.Item.cardState, Tableau.Item.card} as item) =>
     <CardIcon
       card=item
       key=(Card.key(card))
-      onClick=(cardAction(self, item))
+      onClick=(_ => self.ReasonReact.send(Game.SelectCard(item)))
     />
   | Paired =>
     <img
@@ -76,7 +61,11 @@ let make = _children => {
           | NotStarted
           | OneCardFlipped(_) => str(message(state))
           | TwoCardsFlipped(_, _) =>
-            <button onClick=(buttonAction(self))>
+            <button onClick=(_ => self.send(Game.Continue))>
+              (str(message(state)))
+            </button>
+          | GameComplete =>
+            <button onClick=(_ => self.send(Game.Reset))>
               (str(message(state)))
             </button>
           }

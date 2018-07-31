@@ -19,7 +19,7 @@ module Item: {
 type t = list(Item.t);
 
 let getItemState: (t, Item.t) => Item.cardState;
-
+let complete: t => bool;
 let pairsFound: t => int;
 
 let flipCard: (t, Item.t) => t;
