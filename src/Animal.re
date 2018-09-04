@@ -1,5 +1,3 @@
-[%%debugger.chrome];
-
 type t =
   | Badger
   | Bee
